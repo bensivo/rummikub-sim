@@ -1,3 +1,5 @@
+from rummikub_sim.core.serialization import set_to_str
+
 def find_runs(tiles):
     """
     Find all the possible runs (3 or more consecutive numbers of the same color)
@@ -12,7 +14,12 @@ def find_runs(tiles):
     tile_map = _build_tile_map(tiles)
 
     three_runs = _find_three_runs(tile_map)
-    extended_runs = _extend_three_runs(three_runs, tile_map)
+    # extended_runs = _extend_three_runs(three_runs, tile_map)
+    extended_runs = []
+    for run in three_runs:
+        extended_runs.extend(
+            _extend_run(run, tile_map)
+        )
 
     return three_runs + extended_runs
 
@@ -84,26 +91,46 @@ def _find_three_runs(tile_map):
 
     return runs
 
-def _extend_three_runs(three_runs, tile_map):
+def _extend_run(run, tile_map):
     """
-    Take the list of three_runs, and see if there are opportunities
-    for longer runs using the given tile_map.
-
-    Returns:
-        list of Tiles: the newly added runs
+    Take the run, and produce any potential extensions of it possible in our tile map
     """
-    new_runs = []
-    for run in three_runs:
-        first_tile = run[0]
-        color = first_tile.color
+    print(f'Extending run: {set_to_str(run)}')
+    extended_runs = []
+    last_tile = run[-1]
+    color = last_tile.color
 
-        extended_run = run.copy()
-        while True:
-            last_tile = extended_run[-1]
-            next_tile = tile_map[color].get(last_tile.number + 1)
-            if next_tile is None:
-                break
+    if last_tile.number == 13:
+        return []
 
-            extended_run.append(next_tile)
-            new_runs.append(extended_run.copy())
-    return new_runs
+    # See if we can extend the run with the next consecutive tile of the same color
+    next_tile = tile_map[color].get(last_tile.number + 1)
+    if next_tile is not None:
+        print(f'Extension found next tile: {set_to_str([next_tile])}')
+        extended_runs.append(run.copy() + [next_tile])
+
+    # See if we have any jokers available to just add to the end
+    red_joker = tile_map.get("red", {}).get("J")
+    black_joker = tile_map.get("black", {}).get("J")
+    red_joker_available = red_joker is not None and red_joker not in run
+    black_joker_available = black_joker is not None and black_joker not in run
+
+    if red_joker_available:
+        print(f'Extension found red joker: {set_to_str([red_joker])}')
+        extended_runs.append(run.copy() + [red_joker])
+    if black_joker_available:
+        print(f'Extension found black joker: {set_to_str([black_joker])}')
+        extended_runs.append(run.copy() + [black_joker])
+
+    # TODO: how to check for this b12,rJ,bJ (not valid, the bJ would be 14)
+
+    if len(extended_runs) == 0:
+        print(f'No extensions found for run: {set_to_str(run)}')
+
+
+    # Recursively call extend run again, to find all possible extensions
+    for extended_run in extended_runs:
+        extended_runs.extend(_extend_run(extended_run, tile_map))
+
+    return extended_runs
+

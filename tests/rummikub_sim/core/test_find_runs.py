@@ -85,13 +85,21 @@ def test__find_runs__jokers_in_all_spots():
     print('|'.join(runs_str))
     # Then: The run is returned with the jokers considered
     # at each spot, plus at the begining and end of the run
-    assert len(runs) == 7
+    assert len(runs) == 8
     assert "[rJ,r2,r3]" in runs_str  # j23
     assert "[r2,r3,r4]" in runs_str  # 234
     assert "[rJ,r3,r4]" in runs_str  # j34
     assert "[r2,rJ,r4]" in runs_str  # 2j4
     assert "[r2,r3,rJ]" in runs_str  # 23j
     assert "[r3,r4,rJ]" in runs_str  # 34j
-    assert "[r2,r3,r4,rJ]" in runs_str  # 234j  ## TODO: extend_three_runs doesn't consider adding a joker to the end
+    assert "[r2,r3,r4,rJ]" in runs_str  # 234j
     assert "[rJ,r2,r3,r4]" in runs_str  # j234  
     
+
+def test__find_runs__doest_put_jokers_over_13():
+    # Given: a hand 12,13,J
+
+    # When: find_runs is called
+
+    # Then: J,12,13 is found, but 12,13,J is not considered
+    # becasue the J would be in slot "14"
