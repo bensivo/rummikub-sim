@@ -1,4 +1,7 @@
+import random
+
 from rummikub_sim.core.find_runs import find_runs
+from rummikub_sim.core.find_sets import find_sets
 from rummikub_sim.core.serialization import set_to_str
 
 
@@ -10,7 +13,6 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.hand = []
-        self.has_played_30 = False  # Tracks whether the player has ever played a combination worth 30 points
 
     def draw_tile(self, game):
         """
@@ -24,33 +26,39 @@ class Player:
         """
         Play a turn for the player, which may include drawing a tile and playing tiles on the board.
         """
-        print(f"{self.name}: starting turn.")
-        print(f"  {set_to_str(self.hand)}")
-        if not self.has_played_30:
-            # The Player has not yet played their initial hand of 30-points in this game
-            # They must play only from within their hand to reach the 30-point threshold.
+        played_any = False
 
-            potential_hands = self.find_potential_hands(game)
+        # Keep playing moves until there is nothing left to play
+        while True:
+            potential_moves = self.find_potential_moves(game)
 
-            if len(potential_hands) == 0:
-                print(f"{self.name}: no potential hands found, drawing a tile.")
-                self.draw_tile(game)
-                return
+            if len(potential_moves) == 0:
+                break
 
-            print(f"{self.name}: potential hands to play:")
-            for hand in potential_hands:
-                print(f"  {set_to_str(hand)}")
+            # TODO: intelligently choose which hand to play
 
-            # For now, we just print the potential hands for debugging purposes.
-            # In a real implementation, the player would choose one of these hands to play.
+            move = random.choice(potential_moves)
+            print(f"{self.name}: played {set_to_str(move)}")
 
-    def find_potential_hands(self, game):
+            game.board.append(move)
+            for tile in move:
+                self.hand.remove(tile)
+            played_any = True
+
+        # Only draw if the player couldn't play anything this turn
+        if not played_any:
+            self.draw_tile(game)
+
+    def find_potential_moves(self, game):
         """
-        Find all potential hands that the player can play from their current hand, given the state of the game board.
+        Find all potential moves that the player can play from their current hand, given the state of the game board.
         """
         potential_hands = []
 
         runs = find_runs(self.hand)
         potential_hands.extend(runs)
+
+        sets = find_sets(self.hand)
+        potential_hands.extend(sets)
 
         return potential_hands
