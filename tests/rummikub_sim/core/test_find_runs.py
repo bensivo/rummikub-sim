@@ -107,3 +107,14 @@ def test__find_runs__doest_put_jokers_over_13():
     # becasue the J would be in slot "14"
     assert "[rJ,r12,r13]" in runs_str
     assert "[r12,r13,rJ]" not in runs_str
+
+def test__find_runs__extends_run_ending_in_joker():
+    # Given: a hand which triggers extension logic using a joker
+    tiles = set_from_str("[r2,r3,r4,rJ,r6]")
+
+    # When: we call find_runs
+    runs = find_runs(tiles)
+    runs_str = [set_to_str(run) for run in runs]
+
+    # Then: the run is successfully returned
+    assert "[r2,r3,r4,rJ,r6]" in runs_str

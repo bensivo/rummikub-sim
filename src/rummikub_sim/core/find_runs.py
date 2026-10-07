@@ -14,7 +14,6 @@ def find_runs(tiles):
     tile_map = _build_tile_map(tiles)
 
     three_runs = _find_three_runs(tile_map)
-    # extended_runs = _extend_three_runs(three_runs, tile_map)
     extended_runs = []
     for run in three_runs:
         extended_runs.extend(
@@ -62,6 +61,8 @@ def _find_three_runs(tile_map):
     red_joker = tile_map.get("red", {}).get("J")
     black_joker = tile_map.get("black", {}).get("J")
 
+    # For each color, slide a 3-wide window from 1 to 11 (e.g. 123,234,345...), and see if that run can be made 
+    # either directly, or using jokers to fill in missing numbers.
     colors = list(tile_map.keys())
     for color in colors:
         for i in range(1, 12):
@@ -83,7 +84,7 @@ def _find_three_runs(tile_map):
                 potential_runs.append([first, black_joker, third])
                 potential_runs.append([first, second, black_joker])
 
-            # Add any runs which don't have nulls (indicating that tile is not in hand)
+            # Only keep the runs where each tile is not null (indicating it exists in hand)
             for potential_run in potential_runs:
                 if all(tile is not None for tile in potential_run):
                     runs.append(potential_run)
@@ -97,37 +98,40 @@ def _extend_run(run, tile_map):
     extended_runs = []
     last_tile = run[-1]
     color = last_tile.color
+    last_value = _slot_value(run, len(run) - 1)
 
-    if last_tile.number == 13:
+    # Can't extend past 13 (this also covers a joker sitting in the 13 slot)
+    if last_value >= 13:
         return []
 
-    # See if we can extend the run with the next consecutive tile of the same color
-    next_tile = tile_map[color].get(last_tile.number + 1)
+    # See if we can extend the run with the next tile of the same color
+    next_tile = tile_map[color].get(last_value + 1)
     if next_tile is not None:
         extended_runs.append(run.copy() + [next_tile])
 
     # See if we have any jokers available to just add to the end
     red_joker = tile_map.get("red", {}).get("J")
     black_joker = tile_map.get("black", {}).get("J")
-    red_joker_available = red_joker is not None and red_joker not in run
-    black_joker_available = black_joker is not None and black_joker not in run
 
-    if red_joker_available:
-        extension = run.copy() + [red_joker]
-        # Double check that the extension doesn't put the joker past the "13" spot
-        if extension[-2].number <= 12 or extension[-3].number <= 11:
-            extended_runs.append(extension)
+    for joker in (red_joker, black_joker):
+        if joker is not None and joker not in run:
+            extended_runs.append(run.copy() + [joker])
 
-    if black_joker_available:
-        extension = run.copy() + [black_joker]
-
-        # Double check that the extension doesn't put the joker past the "13" spot
-        if extension[-2].number <= 12 or extension[-3].number <= 11:
-            extended_runs.append(extension)
-
-    # Recursively call extend run again, to find all possible extensions
-    for extended_run in extended_runs:
+    # Recursively extend each of the new runs
+    for extended_run in list(extended_runs):
         extended_runs.extend(_extend_run(extended_run, tile_map))
 
     return extended_runs
 
+
+def _slot_value(run, index):
+    """
+    Get the number a tile occupies in the run. Jokers have no number of their own,
+    so their value is inferred from the nearest real tile in the run.
+
+    Example: _slot_value([r1,r2,rJ], 2) would return 3, because the J is acting as a 3 here.
+    """
+    for i, tile in enumerate(run):
+        if not tile.is_joker:
+            return tile.number + (index - i)
+    raise ValueError("run contains only jokers")
