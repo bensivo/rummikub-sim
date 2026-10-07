@@ -109,6 +109,10 @@ def test__find_runs__doest_put_jokers_over_13():
     assert "[r12,r13,rJ]" not in runs_str
 
 def test__find_runs__extends_run_ending_in_joker():
+    # note: there was an obscure bug related to the fact that jokers internally have a '-1' as their number
+    # When we used a joker as the final tile in a sequence, it would show up as -1, and the extension logic would try
+    # to find a '0' as the next tile, not the proper next tile in the sequence.
+
     # Given: a hand which triggers extension logic using a joker
     tiles = set_from_str("[r2,r3,r4,rJ,r6]")
 
