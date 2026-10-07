@@ -64,8 +64,7 @@ def _find_three_runs(tile_map):
 
     colors = list(tile_map.keys())
     for color in colors:
-        for i in range(1, 11):
-            print(f"Checking potential run starting at {i} for color {color}")
+        for i in range(1, 12):
             potential_runs = []
 
             first = tile_map[color].get(i)
@@ -95,7 +94,6 @@ def _extend_run(run, tile_map):
     """
     Take the run, and produce any potential extensions of it possible in our tile map
     """
-    print(f'Extending run: {set_to_str(run)}')
     extended_runs = []
     last_tile = run[-1]
     color = last_tile.color
@@ -116,17 +114,18 @@ def _extend_run(run, tile_map):
     black_joker_available = black_joker is not None and black_joker not in run
 
     if red_joker_available:
-        print(f'Extension found red joker: {set_to_str([red_joker])}')
-        extended_runs.append(run.copy() + [red_joker])
+        extension = run.copy() + [red_joker]
+        # Double check that the extension doesn't put the joker past the "13" spot
+        if extension[-2].number <= 12 or extension[-3].number <= 11:
+            extended_runs.append(extension)
+
     if black_joker_available:
         print(f'Extension found black joker: {set_to_str([black_joker])}')
-        extended_runs.append(run.copy() + [black_joker])
+        extension = run.copy() + [black_joker]
 
-    # TODO: how to check for this b12,rJ,bJ (not valid, the bJ would be 14)
-
-    if len(extended_runs) == 0:
-        print(f'No extensions found for run: {set_to_str(run)}')
-
+        # Double check that the extension doesn't put the joker past the "13" spot
+        if extension[-2].number <= 12 or extension[-3].number <= 11:
+            extended_runs.append(extension)
 
     # Recursively call extend run again, to find all possible extensions
     for extended_run in extended_runs:

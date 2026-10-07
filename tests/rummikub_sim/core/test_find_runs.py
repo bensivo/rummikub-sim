@@ -82,7 +82,6 @@ def test__find_runs__jokers_in_all_spots():
     runs = find_runs(tiles)
     runs_str = [set_to_str(run) for run in runs]
 
-    print('|'.join(runs_str))
     # Then: The run is returned with the jokers considered
     # at each spot, plus at the begining and end of the run
     assert len(runs) == 8
@@ -98,8 +97,13 @@ def test__find_runs__jokers_in_all_spots():
 
 def test__find_runs__doest_put_jokers_over_13():
     # Given: a hand 12,13,J
+    tiles = set_from_str("[r12,r13,rJ]")
 
-    # When: find_runs is called
+    # When: We call find_runs
+    runs = find_runs(tiles)
+    runs_str = [set_to_str(run) for run in runs]
 
     # Then: J,12,13 is found, but 12,13,J is not considered
     # becasue the J would be in slot "14"
+    assert "[rJ,r12,r13]" in runs_str
+    assert "[r12,r13,rJ]" not in runs_str
