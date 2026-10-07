@@ -2,7 +2,6 @@ import random
 
 from rummikub_sim.tile import Tile
 
-
 class Game:
     """
     An instance of a single game of rummikub being played, with its own internal state, players, and game progress.

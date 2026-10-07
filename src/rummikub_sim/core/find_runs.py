@@ -104,7 +104,6 @@ def _extend_run(run, tile_map):
     # See if we can extend the run with the next consecutive tile of the same color
     next_tile = tile_map[color].get(last_tile.number + 1)
     if next_tile is not None:
-        print(f'Extension found next tile: {set_to_str([next_tile])}')
         extended_runs.append(run.copy() + [next_tile])
 
     # See if we have any jokers available to just add to the end
@@ -120,7 +119,6 @@ def _extend_run(run, tile_map):
             extended_runs.append(extension)
 
     if black_joker_available:
-        print(f'Extension found black joker: {set_to_str([black_joker])}')
         extension = run.copy() + [black_joker]
 
         # Double check that the extension doesn't put the joker past the "13" spot
