@@ -10,7 +10,7 @@ See [overview.md](overview.md) for what the project is and [style-guide.md](styl
 | `src/rummikub_sim/__init__.py` | Public exports: `Game`, `Player`, `Tile`. |
 | `src/rummikub_sim/tile.py` | `Tile` class (color, number, `is_joker`; value equality + hash). |
 | `src/rummikub_sim/game.py` | `Game`: builds/shuffles the draw pile, deals hands (`setup_game`), advances turns (`tick`). Holds `players`, `board`, `draw_pile`, `current_player_index`. |
-| `src/rummikub_sim/player.py` | `Player`: hand, `has_melded`, `draw_tile`, `play_turn` (turn logic), `play_move`, `play_rearrangement`, `plan_initial_meld` (greedy 30-pt planner). **Strategy decisions live here.** |
+| `src/rummikub_sim/player.py` | `Player`: hand, `has_melded`, `draw_tile`, `play_turn` (turn logic), `play_meld`, `play_move`, `plan_initial_meld` (greedy 30-pt planner). **Strategy decisions live here.** |
 
 ### Core rules logic: `src/rummikub_sim/core/`
 
@@ -18,7 +18,7 @@ See [overview.md](overview.md) for what the project is and [style-guide.md](styl
 |------|--------------|
 | `core/find_runs.py` | `find_runs(tiles)`: every valid run in a hand, with jokers. Helpers: `_build_tile_map`, `_find_three_runs`, `_extend_run`, `_slot_value` (the number a tile occupies in a run, inferring jokers). |
 | `core/find_sets.py` | `find_sets(tiles)`: every valid 3/4-tile set, with jokers. Helpers: `_build_tile_map`, `_find_jokers`, `_find_sets_for_number`. |
-| `core/rearrange.py` | `find_rearrangements(board, hand)`: every way to rearrange the board into valid melds (all board tiles kept, at least 1 hand tile added), via backtracking over `find_runs`/`find_sets` candidates. `best_rearrangement` greedily picks the one playing the most hand tiles. |
+| `core/find_moves.py` | `find_moves(board, hand)`: every move available, i.e. every way to rearrange the board into valid melds (all board tiles kept, at least 1 hand tile added), via backtracking over `find_runs`/`find_sets` candidates. A move is `(new_board, played)`. `find_best_move` greedily picks the one playing the most hand tiles. |
 | `core/scoring.py` | `set_value(tiles)` point value of a run/set; `INITIAL_MELD_MIN_POINTS = 30`. Imports `_slot_value` from `find_runs`. |
 | `core/serialization.py` | `set_from_str` / `set_to_str`: tile-string notation (`"[r2,r3,rJ]"`) <-> `list[Tile]`. |
 
@@ -30,7 +30,7 @@ Mirror the `src/` layout.
 |------|--------|
 | `tests/rummikub_sim/core/test_find_runs.py` | `find_runs`: basic, multiple, overlapping, jokers, joker over 13, extension bug. |
 | `tests/rummikub_sim/core/test_find_sets.py` | `find_sets`. |
-| `tests/rummikub_sim/core/test_rearrange.py` | `find_rearrangements` / `best_rearrangement`: extending, splitting runs, jokers, duplicate tiles. |
+| `tests/rummikub_sim/core/test_find_moves.py` | `find_moves` / `find_best_move`: extending, splitting runs, jokers, duplicate tiles. |
 | `tests/test_player.py` | Turn logic: drawing, playing sets, initial meld. Has the `make_game_with_hand` helper at the bottom. |
 | `tests/test_game.py` | Game setup (14 tiles per hand, 78 left in the pile for 2 players). |
 
@@ -43,7 +43,7 @@ Mirror the `src/` layout.
 
 - Change what counts as a valid run -> `core/find_runs.py` (+ `test_find_runs.py`)
 - Change what counts as a valid set -> `core/find_sets.py`
-- Change how a player picks moves -> `player.py` (`play_turn`, `plan_initial_meld`); what moves exist -> `core/rearrange.py`
+- Change how a player picks moves -> `player.py` (`play_turn`, `plan_initial_meld`); what moves exist -> `core/find_moves.py`
 - Change deck contents or dealing -> `game.py` (`setup_game`)
 - Change point values or meld minimum -> `core/scoring.py`
 - Write a hand for a test -> `set_from_str("[r2,r3,r4]")`, or `make_game_with_hand` in `test_player.py`

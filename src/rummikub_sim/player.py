@@ -1,6 +1,6 @@
 from rummikub_sim.core.find_runs import find_runs
 from rummikub_sim.core.find_sets import find_sets
-from rummikub_sim.core.rearrange import best_rearrangement
+from rummikub_sim.core.find_moves import find_best_move
 from rummikub_sim.core.scoring import INITIAL_MELD_MIN_POINTS, set_value
 from rummikub_sim.core.serialization import set_to_str
 
@@ -36,41 +36,41 @@ class Player:
                 self.draw_tile(game)
                 return
 
-            for move in initial_moves:
-                self.play_move(game, move)
+            for meld in initial_moves:
+                self.play_meld(game, meld)
             self.has_melded = True
             played_any = True
 
         # Keep rearranging the board to play tiles from the hand, until there is nothing left to play
         while True:
-            rearrangement = best_rearrangement(game.board, self.hand)
+            move = find_best_move(game.board, self.hand)
 
-            if rearrangement is None:
+            if move is None:
                 break
 
-            # TODO: intelligently choose which rearrangement to play, instead of the one using the most tiles
+            # TODO: intelligently choose which move to play, instead of the one using the most tiles
 
-            new_board, played = rearrangement
-            self.play_rearrangement(game, new_board, played)
+            self.play_move(game, move)
             played_any = True
 
         # Only draw if the player couldn't play anything this turn
         if not played_any:
             self.draw_tile(game)
 
-    def play_move(self, game, move):
+    def play_meld(self, game, meld):
         """
-        Put the tiles of a move from the player's hand onto the board.
+        Put the tiles of a single meld from the player's hand onto the board.
         """
-        print(f"{self.name}: played {set_to_str(move)}")
-        game.board.append(move)
-        for tile in move:
+        print(f"{self.name}: played {set_to_str(meld)}")
+        game.board.append(meld)
+        for tile in meld:
             self.hand.remove(tile)
 
-    def play_rearrangement(self, game, new_board, played):
+    def play_move(self, game, move):
         """
-        Replace the board with a rearranged one, and take the tiles it played out of the player's hand.
+        Replace the board with the rearranged one from the move, and take the tiles it played out of the player's hand.
         """
+        new_board, played = move
         print(f"{self.name}: played {set_to_str(played)}, board is now {[set_to_str(meld) for meld in new_board]}")
         game.board = new_board
         for tile in played:
