@@ -1,6 +1,8 @@
 import random
 
 from rummikub_sim.tile import Tile
+from rummikub_sim.core.serialization import set_to_str
+
 
 class Game:
     """
@@ -39,7 +41,24 @@ class Game:
         Advance the game by one turn, updating the game state accordingly.
         """
 
+        print(f"Board: {board_to_strs(self.board)}")
+
         current_player = self.players[self.current_player_index]
         current_player.play_turn(self)
 
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
+
+def board_to_strs(board):
+    """
+    Turn a board into a sorted list of strings like ["[r1,r2,r3]", "[b5,o5,r5]"], so tests can compare
+    boards without caring about the order of the melds. Tiles in a set are sorted by color, since their
+    order doesn't matter, but tiles in a run keep their order, since that is where the jokers are.
+    """
+    melds = []
+    for meld in board:
+        numbers = {tile.number for tile in meld if not tile.is_joker}
+        if len(numbers) == 1:
+            meld = sorted(meld, key=lambda tile: tile.color)
+        melds.append(set_to_str(meld))
+
+    return sorted(melds)
