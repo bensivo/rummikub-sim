@@ -1,7 +1,6 @@
 from rummikub_sim.tile import Tile
 
 
-
 def set_from_str(s):
     """Parse a string like "b1,b2,bJ" (brackets optional) into a list of Tiles. Inverse of print_set."""
     COLOR_CODES = {'b': 'black', 'r': 'red', 'u': 'blue', 'o': 'orange'}
