@@ -1,7 +1,6 @@
-import random
-
 from rummikub_sim.core.find_runs import find_runs
 from rummikub_sim.core.find_sets import find_sets
+from rummikub_sim.core.rearrange import best_rearrangement
 from rummikub_sim.core.scoring import INITIAL_MELD_MIN_POINTS, set_value
 from rummikub_sim.core.serialization import set_to_str
 
@@ -42,17 +41,17 @@ class Player:
             self.has_melded = True
             played_any = True
 
-        # Keep playing moves until there is nothing left to play
+        # Keep rearranging the board to play tiles from the hand, until there is nothing left to play
         while True:
-            potential_moves = self.find_potential_moves(game)
+            rearrangement = best_rearrangement(game.board, self.hand)
 
-            if len(potential_moves) == 0:
+            if rearrangement is None:
                 break
 
-            # TODO: intelligently choose which hand to play
+            # TODO: intelligently choose which rearrangement to play, instead of the one using the most tiles
 
-            move = random.choice(potential_moves)
-            self.play_move(game, move)
+            new_board, played = rearrangement
+            self.play_rearrangement(game, new_board, played)
             played_any = True
 
         # Only draw if the player couldn't play anything this turn
@@ -66,6 +65,15 @@ class Player:
         print(f"{self.name}: played {set_to_str(move)}")
         game.board.append(move)
         for tile in move:
+            self.hand.remove(tile)
+
+    def play_rearrangement(self, game, new_board, played):
+        """
+        Replace the board with a rearranged one, and take the tiles it played out of the player's hand.
+        """
+        print(f"{self.name}: played {set_to_str(played)}, board is now {[set_to_str(meld) for meld in new_board]}")
+        game.board = new_board
+        for tile in played:
             self.hand.remove(tile)
 
     def plan_initial_meld(self):
@@ -100,17 +108,3 @@ class Player:
                 remaining.remove(tile)
 
         return planned
-
-    def find_potential_moves(self, game):
-        """
-        Find all potential moves that the player can play from their current hand, given the state of the game board.
-        """
-        potential_hands = []
-
-        runs = find_runs(self.hand)
-        potential_hands.extend(runs)
-
-        sets = find_sets(self.hand)
-        potential_hands.extend(sets)
-
-        return potential_hands

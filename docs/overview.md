@@ -13,9 +13,9 @@ Early / work in progress. Currently implemented:
 - Turn loop: a player plays moves until none are left, and draws a tile only if they played nothing.
 - **Initial meld** rule: a player's first play must total 30+ points (`INITIAL_MELD_MIN_POINTS`).
 - A greedy initial-meld planner (known to be suboptimal, see the TODO in `Player.plan_initial_meld`).
-- A random move picker for normal turns (`random.choice` over all possible moves).
+- Rearranging the board: after the initial meld, a player can take tiles from board melds (split runs, free jokers, etc.) as long as the board stays valid. The player greedily picks the rearrangement that plays the most hand tiles.
 
-Not yet implemented (as of writing): playing onto / rearranging tiles already on the board, a win condition or game end,
+Not yet implemented (as of writing): a win condition or game end,
 scoring across games, pluggable strategies, and running many games for statistics.
 
 ## Domain vocabulary

@@ -90,6 +90,24 @@ def test_play_turn_after_initial_meld_has_no_minimum():
     assert player.hand == []
 
 
+def test_play_turn_takes_tiles_from_board():
+    # Given: a player who has already melded, with 2 tiles that make a set with the 4 in the middle of a run on the board
+    game, player = make_game_with_hand("b4,o4")
+    player.has_melded = True
+    game.board = [set_from_str("[r1,r2,r3,r4,r5,r6,r7]")]
+
+    # When: the player takes their turn
+    player.play_turn(game)
+
+    # Then: they split the run to take the 4, and play their whole hand
+    assert player.hand == []
+    assert len(game.board) == 3
+    assert sum(len(meld) for meld in game.board) == 9
+
+    # Then: they do not draw a tile
+    assert len(game.draw_pile) == 1
+
+
 def make_game_with_hand(hand_str, draw_pile_str="b1"):
     """
     Build a game with one player holding exactly the given hand (e.g. "r10,u10,o10"),
